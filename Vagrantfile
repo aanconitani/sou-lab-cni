@@ -4,7 +4,7 @@ Vagrant.configure("2") do |config|
   config.vm.provider "vmware_desktop" do |vmware|
     vmware.memory = 2048
     vmware.cpus = 1
-    vmware.gui = true
+#    vmware.gui = true
     vmware.allowlist_verified = true
   end
 

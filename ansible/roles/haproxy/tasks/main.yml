@@ -20,7 +20,7 @@
 
 - name: update haproxy config
   ansible.builtin.copy:
-    src: ../templates/haproxy.cfg
+    src: ../templates/haproxy.j2
     dest: /containers_vols/haproxy/haproxy.cfg
     owner: vagrant
     group: vagrant
@@ -34,6 +34,7 @@
       - '80:80'
     volumes:
       - '/containers_vols/haproxy/:/usr/local/etc/haproxy:ro'
+    command: "/usr/local/sbin/haproxy -f /usr/local/etc/haproxy/haproxy.cfg"
     state: started
   register: result
 

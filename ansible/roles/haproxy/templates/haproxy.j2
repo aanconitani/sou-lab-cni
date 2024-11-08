@@ -15,7 +15,7 @@ frontend http80
 	timeout client 60s
 	
 backend grafana_backend
-	server grafanahp 192.168.56.50.112:3000
+	server grafanahp 192.168.56.16:3000
 
 backend prometheus_backend
-	server prometheushp 192.168.50.112:9090
+	server prometheushp 192.168.56.16:9090
