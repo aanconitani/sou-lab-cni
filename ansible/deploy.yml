@@ -1,0 +1,13 @@
+# ansible/deploy.yml
+---
+- name: Install Podman on soufe1 and soube2
+  hosts: all
+  become: true
+  roles:
+    - sou_podman
+
+- name: Deploy HAProxy container o soufe1
+  hosts: soufe1
+  become: true
+  roles:
+    - haproxy

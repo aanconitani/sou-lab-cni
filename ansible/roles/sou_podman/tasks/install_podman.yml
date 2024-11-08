@@ -1,0 +1,19 @@
+- name: Update packages 
+  dnf:
+    name: "*"
+    state: latest
+  become: true
+
+- name: Install Podman
+  dnf:
+    name: podman
+    state: present
+  become: true
+
+- name: Enable and start Podman
+  systemd:
+    name: podman.socket
+    enabled: true
+    state: started
+  become: true
+
