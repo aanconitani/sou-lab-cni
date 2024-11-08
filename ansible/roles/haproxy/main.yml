@@ -1,0 +1,39 @@
+- name: pull image haproxy
+  podman_image:
+    name: docker.io/haproxy:2.3
+
+- name: stop container if exist
+  shell: podman stop haproxy
+  ignore_errors: true
+
+- name: remove container if exist
+  shell: podman rm haproxy
+  ignore_errors: true
+
+- name: Create haproxy config directory
+  ansible.builtin.file:
+    path: /containers_vols/haproxy
+    owner: vagrant
+    group: vagrant
+    state: directory
+    mode: '0775'
+
+- name: update haproxy config
+  ansible.builtin.copy:
+    src: ../templates/haproxy.cfg
+    dest: /containers_vols/haproxy/haproxy.cfg
+    owner: vagrant
+    group: vagrant
+    mode: '0664'
+
+- name: Run haproxy
+  containers.podman.podman_container:
+    name: haproxy
+    image: 'docker.io/haproxy:2.3'
+    ports:
+      - '80:80'
+    volumes:
+      - '/containers_vols/haproxy/:/usr/local/etc/haproxy:ro'
+    state: started
+  register: result
+

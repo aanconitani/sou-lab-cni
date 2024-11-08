@@ -6,7 +6,7 @@
   roles:
     - sou_podman
 
-- name: Deploy HAProxy container o soufe1
+- name: Deploy HAProxy container on soufe1
   hosts: soufe1
   become: true
   roles:

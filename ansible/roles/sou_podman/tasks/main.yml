@@ -1,19 +1,24 @@
-- name: Update packages 
+
+- name: Disable SELinux
+  selinux:
+    state: disabled
+
+- name: Reboot soufe1
+  ansible.builtin.reboot:
+    reboot_timeout: 3600
+
+- name: Update dnf cache
   dnf:
-    name: "*"
-    state: latest
-  become: true
+    update_cache: 'yes'
 
 - name: Install Podman
   dnf:
     name: podman
     state: present
-  become: true
 
 - name: Enable and start Podman
   systemd:
     name: podman.socket
     enabled: true
     state: started
-  become: true
 
