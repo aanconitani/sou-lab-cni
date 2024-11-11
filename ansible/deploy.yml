@@ -18,8 +18,8 @@
   roles:
     - prometheus
 
-#- name: Deploy Grafana container on soube2
-#  hosts: soube2
-#  become: true
-#  roles:
-#    - grafana
+- name: Deploy Grafana container on soube2
+  hosts: soube2
+  become: true
+  roles:
+    - grafana
