@@ -5,7 +5,8 @@ global
     daemon
 
 frontend fe_https
-    bind *:8443 ssl crt /usr/local/etc/haproxy/certs/foo.pem
+    #bind *:8443 ssl crt /usr/local/etc/haproxy/certs/foo.pem
+    bind *:80 
     mode http
     log global
     option httplog
@@ -14,8 +15,11 @@ frontend fe_https
     maxconn 8000
     timeout client 30s
 
-    acl is_grafana hdr(host) -i foobar.local use_backend grafana if is_grafana
-    acl is_prometheus hdr(host) -i foo.local use_backend prometheus if is_prometheus
+    acl is_grafana hdr(host) -i foobar.local 
+    use_backend grafana if is_grafana
+    
+    acl is_prometheus hdr(host) -i foo.local 
+    use_backend prometheus if is_prometheus
 
 backend vault
     mode http
