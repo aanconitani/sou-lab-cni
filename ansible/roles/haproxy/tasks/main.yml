@@ -1,0 +1,82 @@
+- name: pull image haproxy
+  podman_image:
+    name: docker.io/haproxy:2.3
+
+- name: stop container if exist
+  shell: podman stop haproxy
+  ignore_errors: true
+
+- name: remove container if exist
+  shell: podman rm haproxy
+  ignore_errors: true
+
+- name: Create haproxy config directory
+  ansible.builtin.file:
+    path: /containers_vols/haproxy
+    owner: vagrant
+    group: vagrant
+    state: directory
+    mode: '0775'
+
+- name: Create directory for SSL certificates
+  ansible.builtin.file:
+    path: /containers_vols/haproxy/certs
+    state: directory
+    mode: '0755'
+
+- name: Copy private key file to remote server
+  ansible.builtin.copy:
+    src: ../templates/soupodman.key
+    dest: /containers_vols/haproxy/certs/soupodman.key
+    mode: '0644'
+
+- name: Generate SSL certificate signing request (CSR)
+  ansible.builtin.command: >
+    openssl req -new -key /containers_vols/haproxy/certs/soupodman.key -out /containers_vols/haproxy/certs/soupodman.csr
+    -subj "/C=IT/ST=Italy/L=Rome/O=Mycorporation/OU=IT/CN=*.local"
+  args:
+    creates: /containers_vols/haproxy/certs/soupodman.csr
+
+- name: Generate self-signed SSL certificate
+  ansible.builtin.command: >
+    openssl x509 -req -days 365 -in /containers_vols/haproxy/certs/soupodman.csr
+    -signkey /containers_vols/haproxy/certs/soupodman.key -out /containers_vols/haproxy/certs/soupodman.pem
+  args:
+    creates: /containers_vols/haproxy/certs/soupodman.pem
+
+- name: Concatenate key and certificate for HAProxy
+  ansible.builtin.shell: |
+    cat /containers_vols/haproxy/certs/soupodman.key /containers_vols/haproxy/certs/soupodman.pem > /containers_vols/haproxy/certs/sou_podman.pem
+  args:
+    creates: /containers_vols/haproxy/certs/sou_podman.pem
+
+- name: update haproxy config
+  ansible.builtin.copy:
+    src: ../templates/haproxy.j2
+    dest: /containers_vols/haproxy/haproxy.cfg
+    owner: vagrant
+    group: vagrant
+    mode: '0664'
+
+- name: Run haproxy
+  containers.podman.podman_container:
+    name: haproxy
+    image: 'docker.io/haproxy:2.3'
+    ports:
+      - '8443:8443'
+      - '80:80'
+    volumes:
+      - '/containers_vols/haproxy/:/usr/local/etc/haproxy:z'
+      - '/containers_vols/haproxy/certs/:/usr/local/etc/haproxy/certs/:z'
+    command: "/usr/local/sbin/haproxy -f /usr/local/etc/haproxy/haproxy.cfg -db"
+    state: started
+  register: result
+
+- name: Check Haproxy container status
+  containers.podman.podman_container_info:
+    name: haproxy
+  register: haproxy_container_status
+
+- name: Display Haproxy container status
+  debug:
+    var: haproxy_container_status

@@ -1,0 +1,21 @@
+defaults
+ timeout client 10s
+  timeout connect 5s
+  timeout server 10s 
+  timeout http-request 10s
+
+frontend http80
+	bind *:80
+	acl grafana path_beg -i /grafana
+  	acl prometheus path_beg -i /prometheus
+
+	use_backend grafana_backend if grafana
+	use_backend prometheus_backend if prometheus
+
+	timeout client 60s
+
+backend grafana_backend
+	server grafana 192.168.50.12:3000
+
+backend prometheus_backend
+	server prometheus 192.168.50.12:9090

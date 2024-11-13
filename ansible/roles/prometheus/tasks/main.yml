@@ -1,0 +1,48 @@
+- name: pull image prometheus
+  podman_image:
+    name: docker.io/prom/prometheus
+
+- name: stop container if exist
+  shell: podman stop prometheus
+  ignore_errors: true
+
+- name: remove container if exist
+  shell: podman rm prometheus
+  ignore_errors: true
+
+- name: Create data dir
+  ansible.builtin.file:
+    path: /containers_vols/prometheus/config
+    state: directory
+    mode: '0755'
+
+- name: update prometheus config
+  ansible.builtin.copy:
+    src: ../templates/prometheus.j2
+    dest: /containers_vols/prometheus/config/prometheus.yml
+    owner: vagrant
+    group: vagrant
+    mode: '0664'
+
+- name: Create Prometheus Container
+  containers.podman.podman_container:
+    name: prometheus
+    image: docker.io/prom/prometheus
+    volume:
+      - /containers_vols/prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml:z
+    command:
+      --config.file=/etc/prometheus/prometheus.yml
+      --web.external-url=http://192.168.50.11/prometheus
+    expose:
+      - 9090
+    ports:
+      - "9090:9090"
+
+- name: Check Prometheus container status
+  containers.podman.podman_container_info:
+    name: prometheus
+  register: prometheus_container_status
+
+- name: Display Prometheus container status
+  debug:
+    var: prometheus_container_status

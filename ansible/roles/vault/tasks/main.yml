@@ -1,0 +1,52 @@
+---
+- name: Pull Vault image
+  podman_image:
+    name: docker.io/hashicorp/vault
+
+- name: stop container if exist
+  shell: podman stop vault
+  ignore_errors: true
+
+- name: remove container if exist
+  shell: podman rm vault
+  ignore_errors: true
+
+- name: Create data dir
+  ansible.builtin.file:
+    path: /containers_vols/vault/config
+    state: directory
+    mode: '0755'
+
+- name: update vault config
+  ansible.builtin.copy:
+    src: ../templates/vault.hcl.j2
+    dest: /containers_vols/vault/config/vault.hcl
+    owner: vagrant
+    group: vagrant
+    mode: '0664'
+
+- name: Create Vault container
+  containers.podman.podman_container:
+    name: vault
+    image: hashicorp/vault:latest
+    detach: true
+    restart_policy: always
+    ports:
+      - "8200:8200"
+    volumes:
+      - "/containers_vols/vault/config/:/vault/config:z"
+    cap_add:
+      - IPC_LOCK
+    env:
+      VAULT_DEV_ROOT_TOKEN_ID: "root"
+      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+    command: "server"
+
+- name: Check Vault container status
+  containers.podman.podman_container_info:
+    name: vault
+  register: vault_container_status
+
+- name: Display Vault container status
+  debug:
+    var: vault_container_status
