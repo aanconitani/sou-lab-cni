@@ -1,2 +1,1 @@
 .vagrant/
-ansible/role/haproxy/templates/soupodman.key
