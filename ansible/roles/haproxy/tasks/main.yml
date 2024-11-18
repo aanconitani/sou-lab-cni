@@ -26,29 +26,9 @@
 
 - name: Copy private key file to remote server
   ansible.builtin.copy:
-    src: ../templates/soupodman.key
-    dest: /containers_vols/haproxy/certs/soupodman.key
-    mode: '0644'
-
-- name: Generate SSL certificate signing request (CSR)
-  ansible.builtin.command: >
-    openssl req -new -key /containers_vols/haproxy/certs/soupodman.key -out /containers_vols/haproxy/certs/soupodman.csr
-    -subj "/C=IT/ST=Italy/L=Rome/O=Mycorporation/OU=IT/CN=*.local"
-  args:
-    creates: /containers_vols/haproxy/certs/soupodman.csr
-
-- name: Generate self-signed SSL certificate
-  ansible.builtin.command: >
-    openssl x509 -req -days 365 -in /containers_vols/haproxy/certs/soupodman.csr
-    -signkey /containers_vols/haproxy/certs/soupodman.key -out /containers_vols/haproxy/certs/soupodman.pem
-  args:
-    creates: /containers_vols/haproxy/certs/soupodman.pem
-
-- name: Concatenate key and certificate for HAProxy
-  ansible.builtin.shell: |
-    cat /containers_vols/haproxy/certs/soupodman.key /containers_vols/haproxy/certs/soupodman.pem > /containers_vols/haproxy/certs/sou_podman.pem
-  args:
-    creates: /containers_vols/haproxy/certs/sou_podman.pem
+    src: ../templates/bundle.pem
+    dest: /containers_vols/haproxy/certs/bundle.pem
+    mode: '0600'
 
 - name: update haproxy config
   ansible.builtin.copy:
@@ -68,15 +48,17 @@
     volumes:
       - '/containers_vols/haproxy/:/usr/local/etc/haproxy:z'
       - '/containers_vols/haproxy/certs/:/usr/local/etc/haproxy/certs/:z'
+    cap_add:
+      - IPC_LOCK
+      - NET_RAW
     command: "/usr/local/sbin/haproxy -f /usr/local/etc/haproxy/haproxy.cfg -db"
     state: started
   register: result
 
-- name: Check Haproxy container status
-  containers.podman.podman_container_info:
+- name: Install curl and ping in HAProxy container
+  containers.podman.podman_container_exec:
     name: haproxy
-  register: haproxy_container_status
-
-- name: Display Haproxy container status
-  debug:
-    var: haproxy_container_status
+    command: >
+      sh -c "apt-get update &&
+             apt-get install -y curl iputils-ping net-tools &&
+             apt-get clean"

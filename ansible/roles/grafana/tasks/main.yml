@@ -3,13 +3,13 @@
     name: docker.io/grafana/grafana
     tag: latest
 
-- name: stop container if exist
-  shell: podman stop grafana
-  ignore_errors: true
-
-- name: remove container if exist
-  shell: podman rm grafana
-  ignore_errors: true
+#- name: stop container if exist
+#  shell: podman stop $(podman ps -q)
+#  ignore_errors: true
+#
+#- name: remove container if exist
+#  shell: podman rm $(podman ps -a -q)
+#  ignore_errors: true
 
 - name: Create data dir
   ansible.builtin.file:
@@ -23,23 +23,14 @@
     dest: /containers_vols/grafana/config/grafana.ini
     mode: '0664'
 
-- name: Run Grafana
+- name: Run Grafana1
   containers.podman.podman_container:
-    name: grafana
+    name: grafana1
     image: docker.io/grafana/grafana
+    detach: true
+    restart_policy: always
     ports:
       - '3000:3000'
     volumes:
       - '/containers_vols/grafana/config/grafana.ini:/etc/grafana/grafana.ini:z'
-#    command:
-#      --web.external-url=http://192.168.50.11/grafana
     state: started
-
-- name: Check Grafana container status
-  containers.podman.podman_container_info:
-    name: grafana
-  register: grafana_container_status
-
-- name: Display Grafana container status
-  debug:
-    var: grafana_container_status

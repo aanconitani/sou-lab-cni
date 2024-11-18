@@ -3,13 +3,13 @@
   podman_image:
     name: docker.io/hashicorp/vault
 
-- name: stop container if exist
-  shell: podman stop vault
-  ignore_errors: true
-
-- name: remove container if exist
-  shell: podman rm vault
-  ignore_errors: true
+#- name: stop container if exist
+#  shell: podman stop $(podman ps -q)
+#  ignore_errors: true
+#
+#- name: remove container if exist
+#  shell: podman rm $(podman ps -a -q)
+#  ignore_errors: true
 
 - name: Create data dir
   ansible.builtin.file:
@@ -25,9 +25,9 @@
     group: vagrant
     mode: '0664'
 
-- name: Create Vault container
+- name: Create Vault1 container
   containers.podman.podman_container:
-    name: vault
+    name: vault1
     image: hashicorp/vault:latest
     detach: true
     restart_policy: always
@@ -41,12 +41,3 @@
       VAULT_DEV_ROOT_TOKEN_ID: "root"
       VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
     command: "server"
-
-- name: Check Vault container status
-  containers.podman.podman_container_info:
-    name: vault
-  register: vault_container_status
-
-- name: Display Vault container status
-  debug:
-    var: vault_container_status

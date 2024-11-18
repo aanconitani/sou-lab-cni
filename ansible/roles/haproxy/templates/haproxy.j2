@@ -1,16 +1,16 @@
 global
     maxconn 20000
     ulimit-n  40018
-    log 127.0.0.1 local0
-    daemon
+    log stdout format raw local0 debug
+    log-send-hostname
 
 defaults
-    timeout connect 5s
     timeout client 30s
+    timeout connect 5s
     timeout server 30s
 
 frontend fe_https
-    bind *:8443 ssl crt /usr/local/etc/haproxy/certs/sou_podman.pem
+    bind *:8443 ssl crt /usr/local/etc/haproxy/certs/bundle.pem
     bind *:80 
     mode http
     log global
@@ -19,29 +19,39 @@ frontend fe_https
     option nolinger
     maxconn 8000
 
-    acl is_vault hdr(host) -i vault.local 
+    #use_backend vault if { req.hdr(host) -i vault.local }
+    #use_backend grafana if { req.hdr(host) -i grafana.local  }
+    #use_backend prometheus if { req.hdr(host) -i prometheus.local }
+
+    acl is_vault hdr(host) -i vault.local:8443 
     use_backend vault if is_vault
 
-    acl is_grafana hdr(host) -i grafana.local 
+    acl is_grafana hdr(host) -i grafana.local:8443 
     use_backend grafana if is_grafana
     
-    acl is_prometheus hdr(host) -i prometheus.local 
+    acl is_prometheus hdr(host) -i prometheus.local:8443 
     use_backend prometheus if is_prometheus
 
 backend vault
     mode http
     balance roundrobin
-    option httpchk
-    server vault1 192.168.50.12:8200 check check-ssl ssl verify none
-    
+    option httpchk 
+    server vault1 192.168.50.12:8200 check 
+    #server vault2 192.168.50.12:8201 check
+    #server vault3 192.168.50.12:8202 check
+
 backend grafana
     mode http
     balance roundrobin
-    option httpchk
+    option httpchk 
     server grafana1 192.168.50.12:3000 check
+    #server grafana2 192.168.50.12:3001 check
+    #server grafana3 192.168.50.12:3002 check
 
 backend prometheus
     mode http
     balance roundrobin
-    option httpchk
+    option httpchk 
     server prometheus1 192.168.50.12:9090 check
+    #server prometheus2 192.168.50.12:9091 check
+    #server prometheus3 192.168.50.12:9092 check
