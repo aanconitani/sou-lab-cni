@@ -2,15 +2,7 @@
 - name: Pull Vault image
   podman_image:
     name: docker.io/hashicorp/vault
-
-#- name: stop container if exist
-#  shell: podman stop $(podman ps -q)
-#  ignore_errors: true
-#
-#- name: remove container if exist
-#  shell: podman rm $(podman ps -a -q)
-#  ignore_errors: true
-
+  
 - name: Create data dir
   ansible.builtin.file:
     path: /containers_vols/vault/config
@@ -25,14 +17,31 @@
     group: vagrant
     mode: '0664'
 
-- name: Create Vault1 container
+#- name: Create Vault1 container
+#  containers.podman.podman_container:
+#    name: vault1
+#    image: hashicorp/vault:latest
+#    detach: true
+#    restart_policy: always
+#    ports:
+#      - "8200:8200"
+#    volumes:
+#      - "/containers_vols/vault/config/:/vault/config:z"
+#    cap_add:
+#      - IPC_LOCK
+#    env:
+#      VAULT_DEV_ROOT_TOKEN_ID: "root"
+#      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+#    command: "server"
+
+- name: Run Vault containers
   containers.podman.podman_container:
-    name: vault1
+    name: "vault{{ item }}"
     image: hashicorp/vault:latest
     detach: true
     restart_policy: always
     ports:
-      - "8200:8200"
+      - "{{ 8200 + item }}:8200"  # Dynamically assign unique host ports
     volumes:
       - "/containers_vols/vault/config/:/vault/config:z"
     cap_add:
@@ -41,3 +50,10 @@
       VAULT_DEV_ROOT_TOKEN_ID: "root"
       VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
     command: "server"
+    state: started
+  loop:
+    - 1
+    - 2
+    - 3  # Now includes 3 containers: vault1, vault2, vault3
+  tags:
+    - vault

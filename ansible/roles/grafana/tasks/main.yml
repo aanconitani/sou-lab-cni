@@ -3,14 +3,6 @@
     name: docker.io/grafana/grafana
     tag: latest
 
-#- name: stop container if exist
-#  shell: podman stop $(podman ps -q)
-#  ignore_errors: true
-#
-#- name: remove container if exist
-#  shell: podman rm $(podman ps -a -q)
-#  ignore_errors: true
-
 - name: Create data dir
   ansible.builtin.file:
     path: /containers_vols/grafana/config
@@ -23,14 +15,32 @@
     dest: /containers_vols/grafana/config/grafana.ini
     mode: '0664'
 
-- name: Run Grafana1
+#- name: Run Grafana1
+#  containers.podman.podman_container:
+#    name: grafana1
+#    image: docker.io/grafana/grafana
+#    detach: true
+#    restart_policy: always
+#    ports:
+#      - '3000:3000'
+#    volumes:
+#      - '/containers_vols/grafana/config/grafana.ini:/etc/grafana/grafana.ini:z'
+#    state: started
+
+- name: Run Grafana containers
   containers.podman.podman_container:
-    name: grafana1
+    name: "grafana{{ item }}"
     image: docker.io/grafana/grafana
     detach: true
     restart_policy: always
     ports:
-      - '3000:3000'
+      - "{{ 3000 + item }}:3000"  # Dynamically assign unique host ports
     volumes:
       - '/containers_vols/grafana/config/grafana.ini:/etc/grafana/grafana.ini:z'
     state: started
+  loop:
+    - 1
+    - 2
+    - 3  # Now includes 3 containers: grafana1, grafana2, grafana3
+  tags:
+    - grafana

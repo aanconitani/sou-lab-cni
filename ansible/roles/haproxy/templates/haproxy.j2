@@ -1,6 +1,6 @@
 global
     maxconn 20000
-    ulimit-n  40018
+    ulimit-n  40024
     log stdout format raw local0 debug
     log-send-hostname
 
@@ -37,21 +37,21 @@ backend vault
     balance roundrobin
     option httpchk 
     server vault1 192.168.50.12:8200 check 
-    #server vault2 192.168.50.12:8201 check
-    #server vault3 192.168.50.12:8202 check
+    server vault2 192.168.50.12:8201 check
+    server vault3 192.168.50.12:8202 check
 
 backend grafana
     mode http
     balance roundrobin
     option httpchk 
     server grafana1 192.168.50.12:3000 check
-    #server grafana2 192.168.50.12:3001 check
-    #server grafana3 192.168.50.12:3002 check
+    server grafana2 192.168.50.12:3001 check
+    server grafana3 192.168.50.12:3002 check
 
 backend prometheus
     mode http
     balance roundrobin
     option httpchk 
     server prometheus1 192.168.50.12:9090 check
-    #server prometheus2 192.168.50.12:9091 check
-    #server prometheus3 192.168.50.12:9092 check
+    server prometheus2 192.168.50.12:9091 check
+    server prometheus3 192.168.50.12:9092 check
