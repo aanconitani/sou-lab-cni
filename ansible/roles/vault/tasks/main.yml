@@ -2,37 +2,46 @@
 - name: Pull Vault image
   podman_image:
     name: docker.io/hashicorp/vault
-  
-- name: Create data dir
+
+- name: Create Vault user
+  ansible.builtin.user:
+    name: vault
+    state: present
+    system: yes  # Create as a system account
+
+- name: Create data directory for Vault nodes
   ansible.builtin.file:
-    path: /containers_vols/vault/config
+    path: "/containers_vols/vault/{{ item }}/data"
+    state: directory
+    owner: vault
+    group: vault
+    mode: '0755'
+  loop:
+    - node1
+    - node2
+    - node3
+
+- name: Create config directory for Vault nodes
+  ansible.builtin.file:
+    path: "/containers_vols/vault/{{ item }}/config"
     state: directory
     mode: '0755'
+  loop:
+    - node1
+    - node2
+    - node3
 
-- name: update vault config
-  ansible.builtin.copy:
+- name: Update Vault configuration
+  ansible.builtin.template:
     src: ../templates/vault.hcl.j2
-    dest: /containers_vols/vault/config/vault.hcl
-    owner: vagrant
-    group: vagrant
+    dest: "/containers_vols/vault/{{ item }}/config/vault.hcl"
+    owner: vault
+    group: vault
     mode: '0664'
-
-#- name: Create Vault1 container
-#  containers.podman.podman_container:
-#    name: vault1
-#    image: hashicorp/vault:latest
-#    detach: true
-#    restart_policy: always
-#    ports:
-#      - "8200:8200"
-#    volumes:
-#      - "/containers_vols/vault/config/:/vault/config:z"
-#    cap_add:
-#      - IPC_LOCK
-#    env:
-#      VAULT_DEV_ROOT_TOKEN_ID: "root"
-#      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
-#    command: "server"
+  loop:
+    - node1
+    - node2
+    - node3
 
 - name: Run Vault containers
   containers.podman.podman_container:
@@ -41,19 +50,36 @@
     detach: true
     restart_policy: always
     ports:
-      - "{{ 8200 + item }}:8200"  # Dynamically assign unique host ports
+      - "{{ 8200 + item }}:8200"
     volumes:
-      - "/containers_vols/vault/config/:/vault/config:z"
+      - "/containers_vols/vault/node{{ item }}/config:/vault/config:z"
+      - "/containers_vols/vault/node{{ item }}/data:/vault/data:z"
     cap_add:
       - IPC_LOCK
     env:
-      VAULT_DEV_ROOT_TOKEN_ID: "root"
-      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+      VAULT_LOCAL_CONFIG: |
+        {
+          "backend": {
+            "raft": {
+              "path": "/vault/data"
+              "node_id": "node{{ item }}"
+            }
+          },
+          "listener": [{
+            "tcp": {
+              "address": "0.0.0.0:8200",
+              "cluster_address": "0.0.0.0:8201"
+              "tls_disable": true
+            }
+          }],
+          "api_addr": "http://127.0.0.1:{{ 8200 + item }}"
+          "cluster_addr": "http://127.0.0.1:{{ 8201 + item }}"
+        }
     command: "server"
     state: started
   loop:
     - 1
     - 2
-    - 3  # Now includes 3 containers: vault1, vault2, vault3
+    - 3
   tags:
     - vault

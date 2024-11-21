@@ -15,18 +15,6 @@
     dest: /containers_vols/grafana/config/grafana.ini
     mode: '0664'
 
-#- name: Run Grafana1
-#  containers.podman.podman_container:
-#    name: grafana1
-#    image: docker.io/grafana/grafana
-#    detach: true
-#    restart_policy: always
-#    ports:
-#      - '3000:3000'
-#    volumes:
-#      - '/containers_vols/grafana/config/grafana.ini:/etc/grafana/grafana.ini:z'
-#    state: started
-
 - name: Run Grafana containers
   containers.podman.podman_container:
     name: "grafana{{ item }}"
@@ -34,13 +22,13 @@
     detach: true
     restart_policy: always
     ports:
-      - "{{ 3000 + item }}:3000"  # Dynamically assign unique host ports
+      - "{{ 3000 + item }}:3000" 
     volumes:
       - '/containers_vols/grafana/config/grafana.ini:/etc/grafana/grafana.ini:z'
     state: started
   loop:
     - 1
     - 2
-    - 3  # Now includes 3 containers: grafana1, grafana2, grafana3
+    - 3 
   tags:
     - grafana

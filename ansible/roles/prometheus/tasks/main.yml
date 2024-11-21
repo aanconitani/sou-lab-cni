@@ -16,19 +16,6 @@
     group: vagrant
     mode: '0664'
 
-#- name: Create Prometheus1 Container
-#  containers.podman.podman_container:
-#    name: prometheus1
-#    image: docker.io/prom/prometheus
-#    detach: true
-#    restart_policy: always
-#    volume:
-#      - /containers_vols/prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml:z
-#    command: 
-#      --config.file=/etc/prometheus/prometheus.yml
-#    ports:
-#      - "9090:9090"
-
 - name: Run Prometheus containers
   containers.podman.podman_container:
     name: "prometheus{{ item }}"
@@ -40,11 +27,11 @@
     command: 
       --config.file=/etc/prometheus/prometheus.yml
     ports:
-      - "{{ 9090 + item }}:9090"  # Dynamically assign unique host ports
+      - "{{ 9090 + item }}:9090" 
     state: started
   loop:
     - 1
     - 2
-    - 3  # Now includes 3 containers: prometheus1, prometheus2, prometheus3
+    - 3 
   tags:
     - prometheus

@@ -1,31 +1,23 @@
 # ansible/deploy.yml
 ---
-- name: Install Podman on soufe1 and soube2
-  hosts: all
-  become: true
-  roles:
-    - sou_podman
-
-- name: Deploy HAProxy and Vault container on soufe1
+- name: Deploy Podman and HAProxy on soufe1
   hosts: soufe1
   become: true
   roles:
+    - sou_podman
     - haproxy
 
-- name: Deploy Prometheus container on soube2
+- name: Deploy Podman, Prometheus, Vault and Grafana on soube2
   hosts: soube2
   become: true
   roles:
+    - sou_podman
     - prometheus
-
-- name: Deploy Grafana container on soube2
-  hosts: soube2
-  become: true
-  roles:
     - grafana
 
-- name: Deploy Vault container on soube2
-  hosts: soube2
-  become: true
-  roles:
-    - vault
+#- name: Deploy Podman and Vault
+#  hosts: soube3
+#  become: true
+#  roles:
+#    - sou_podman
+#    - vault
