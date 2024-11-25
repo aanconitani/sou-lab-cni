@@ -46,14 +46,14 @@ Vagrant.configure("2") do |config|
             server.vm.provision "shell", path: "vault/vaultdownload.sh", args: ["1.0.0-rc1", "/usr/local/bin"]
             
               ##  API Provisioning
-            #if "#{i}" == "7"
-            #    server.vm.provision "shell", inline: "consul members; curl localhost:8500/v1/catalog/nodes ; sleep 15"
-            #    server.vm.provision "shell", inline: "echo 'Provisioning Consul ACLs via this host: '; hostname"
-            #    server.vm.provision "shell", path: "vault/provision_consul/scripts/acl/consul_acl.sh"
-            #    server.vm.provision "shell", path: "vault/provision_consul/scripts/acl/consul_acl_vault.sh"
-            #    else
-            #    server.vm.provision "shell", inline: "echo 'Not provisioning Consul ACLs via this host: '; hostname"
-            #end
+            if "#{i}" == "7"
+                server.vm.provision "shell", inline: "consul members; curl localhost:8500/v1/catalog/nodes ; sleep 15"
+                server.vm.provision "shell", inline: "echo 'Provisioning Consul ACLs via this host: '; hostname"
+                server.vm.provision "shell", path: "vault/provision_consul/scripts/acl/consul_acl.sh"
+                server.vm.provision "shell", path: "vault/provision_consul/scripts/acl/consul_acl_vault.sh"
+                else
+                server.vm.provision "shell", inline: "echo 'Not provisioning Consul ACLs via this host: '; hostname"
+            end
         end
     end
 
