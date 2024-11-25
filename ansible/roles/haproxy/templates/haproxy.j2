@@ -34,11 +34,11 @@ frontend fe_https
 
 backend vault
     mode http
-    #balance roundrobin
+    balance roundrobin
     option httpchk 
-    server vault1 192.168.50.13:8200 check 
-    #server vault2 192.168.50.13:8202 check
-    #server vault3 192.168.50.13:8203 check
+    server vault1 192.168.13.35:8200 check 
+    server vault2 192.168.13.36:8200 check
+    server vault3 192.168.13.37:8200 check
 
 backend grafana
     mode http
