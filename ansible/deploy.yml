@@ -7,7 +7,7 @@
     - sou_podman
     - haproxy
 
-- name: Deploy Podman, Prometheus, Vault and Grafana on soube2
+- name: Deploy Podman, Prometheus and Grafana on soube2
   hosts: soube2
   become: true
   roles:

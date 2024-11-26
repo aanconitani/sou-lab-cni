@@ -3,6 +3,14 @@
     name: docker.io/grafana/grafana
     tag: latest
 
+- name: stop container if exist
+  shell: podman stop haproxy
+  ignore_errors: true
+
+- name: remove container if exist
+  shell: podman rm haproxy
+  ignore_errors: true
+
 - name: Create data dir
   ansible.builtin.file:
     path: /containers_vols/grafana/config

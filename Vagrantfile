@@ -1,8 +1,11 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
 #Configurazione globale
 Vagrant.configure("2") do |config|
   config.vm.box = "bento/centos-stream-9-arm64"
   config.vm.provider "vmware_desktop" do |vmware|
-    vmware.memory = 2048
+    vmware.memory = 1024
     vmware.cpus = 1
 #    vmware.gui = true
     vmware.allowlist_verified = true
@@ -31,7 +34,7 @@ Vagrant.configure("2") do |config|
   ##  This example uses three boxes. instance5, instance6, and instance7. 
     (5..7).each do |i|
         config.vm.define "instance#{i}" do |server|
-            server.vm.box = "bento/centos-stream-9-arm64"
+            server.vm.box = "bento/centos-stream-9-arm64" 
             server.vm.hostname = "instance#{i}"
             server.vm.network :private_network, ip: "192.168.13.3#{i}"
             server.vm.provision "shell", path: "vault/account.sh", args: "vault"
@@ -47,7 +50,7 @@ Vagrant.configure("2") do |config|
             
               ##  API Provisioning
             if "#{i}" == "7"
-                server.vm.provision "shell", inline: "consul members; curl localhost:8500/v1/catalog/nodes ; sleep 15"
+                #server.vm.provision "shell", inline: "consul member -http-addr=localhost:8500 ; sleep 10"
                 server.vm.provision "shell", inline: "echo 'Provisioning Consul ACLs via this host: '; hostname"
                 server.vm.provision "shell", path: "vault/provision_consul/scripts/acl/consul_acl.sh"
                 server.vm.provision "shell", path: "vault/provision_consul/scripts/acl/consul_acl_vault.sh"
@@ -87,11 +90,9 @@ Vagrant.configure("2") do |config|
         db.vm.network :private_network, ip: "192.168.13.187"
         db.vm.provision "ansible_local" do |ansible|
             ansible.playbook = "vault/playbooks/prereqs.yaml"
-            ansible.compatibility_mode = "2.0"
         end
         db.vm.provision "ansible_local" do |ansible|
-            ansible.playbook = "vault/playbooks/mariadb.yaml"
-            ansible.compatibility_mode = "2.0"
+            ansible.playbook = "vault//playbooks/mariadb.yaml"
             ansible.extra_vars = {'enable_external_conn': true, 'add_root_priv': !ARGV.include?('provision')}
         end
     end

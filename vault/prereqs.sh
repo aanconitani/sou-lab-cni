@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-sudo curl --silent -Lo /bin/jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64
+sudo curl --silent -Lo /bin/jq https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-arm64
 sudo chmod +x /bin/jq
 
 YUM=$(which yum 2>/dev/null)

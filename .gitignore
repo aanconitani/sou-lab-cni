@@ -1,2 +1,6 @@
 .vagrant/
 bundle.pem
+instance5*
+instance7*
+demonstrations/
+LICENSE
