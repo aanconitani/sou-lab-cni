@@ -1,2 +1,0 @@
-dnspython==2.6.1
-hvac==0.6.4
